@@ -26,11 +26,10 @@ $ssl = 'Secure';
 $non_ssl = 'Non-Secure';
 $redirect = 'Redirect > ';
 $blocked = '403 Forbidden > ';
-$down = 'Error > Non-Existing?';
-$parked = 'Parked';
+$down = 'Error > ';
 $separator = ">\t";
-$header = str_pad(" Testing Domains ", 80, "=", STR_PAD_BOTH) . "\n";
-$footer = str_pad(" End Testing ", 80, "=", STR_PAD_BOTH) . "\n";
+$header = str_pad(" Testing Domains ", 77, "=", STR_PAD_BOTH) . "\n";
+$footer = str_pad(" End Testing ", 77, "=", STR_PAD_BOTH) . "\n";
 
 /**
  * Function to evaluated a domains
@@ -54,6 +53,7 @@ function domainsEval($domains)
             $url_eval = $headers['Location'];
         }
 
+        // evaluate server headers return and index key (L)ocation
         if (strpos($headers[0], '404')) {
             $ssl_status = $GLOBALS['dead'];
             echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['dead'] . "\n";
@@ -63,8 +63,13 @@ function domainsEval($domains)
         } elseif (is_array($url_eval)) {
             $ssl_status = urlRedirect($url, $url_eval);
         } elseif (strpos($url_eval, 'https') !== false) {
-            $ssl_status = $GLOBALS['ssl'];
-            echo str_pad($url_eval, 52, " .") . $GLOBALS['separator'] . $GLOBALS['ssl'] . "\n";
+            if (strpos($url_eval, $domains[$x]) === false) {
+                echo $url . "  [Domain Redirect]\n";
+                echo "\t" . str_pad($url_eval, 44, " .") . $GLOBALS['separator'] . $GLOBALS['redirect'] . $GLOBALS['ssl'] . "\n";
+            } else {
+                $ssl_status = $GLOBALS['ssl'];
+                echo str_pad($url_eval, 52, " .") . $GLOBALS['separator'] . $GLOBALS['ssl'] . "\n";
+            }
         } elseif ($url_eval !== null) {
             $ssl_status = $GLOBALS['non_ssl'];
             echo str_pad($url_eval, 52, " .") . $GLOBALS['separator'] . $GLOBALS['non_ssl'] . "\n";
@@ -72,16 +77,10 @@ function domainsEval($domains)
             $ssl_status = $GLOBALS['non_ssl'];
             echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['non_ssl'] . "\n";
         } else {
-            $ssl_status = $GLOBALS['down'];
-            echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['down'] . "\n";
+            $ssl_status = $GLOBALS['down'] . $GLOBALS['non_ssl'];
+            echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['down'] . $GLOBALS['non_ssl'] . "\n";
         }
-
     }
-
-    if ($ssl_status === null) {
-        $ssl_status = $GLOBALS['parked'];
-    }
-
     return $ssl_status;
 }
 
@@ -95,13 +94,12 @@ function domainsEval($domains)
  */
 function urlRedirect($url, $url_eval)
 {
-    echo $url . "  [Domain redirect to:]\n";
+    echo $url . "  [Domain redirect]\n";
 
     for ($y = 0; $y < 3; $y++) {
         $url_eval_arr = $url_eval[$y];
 
         if ($url_eval_arr === null or strpos($url_eval_arr, 'http') === false) {
-            $ssl_status = null;
             continue;
         } elseif (strpos($url_eval_arr, 'https') !== false) {
             $ssl_status = $GLOBALS['redirect'] . $GLOBALS['ssl'];
