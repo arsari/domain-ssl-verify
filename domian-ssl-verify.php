@@ -25,8 +25,8 @@ $dead = '404 Not Found';
 $ssl = 'Secure';
 $non_ssl = 'Non-Secure';
 $redirect = 'Redirect > ';
-$blocked = '403 Forbidden > ';
-$down = 'Error > ';
+$blocked = '403 Forbidden';
+$down = 'Reading Error';
 $separator = ">\t";
 $header = str_pad(" Testing Domains ", 77, "=", STR_PAD_BOTH) . "\n";
 $footer = str_pad(" End Testing ", 77, "=", STR_PAD_BOTH) . "\n";
@@ -43,7 +43,11 @@ function domainsEval($domains)
     $domains_arr_length = count($domains);
 
     for ($x = 0; $x < $domains_arr_length; $x++) {
-        $url = "http://www." . $domains[$x] . "/"; // domain url to evaluate
+        if ((substr_count($domains[$x], ".") > 1)) {
+            $url = "http://" . $domains[$x] . "/"; // domain url to evaluate
+        } else {
+            $url = "http://www." . $domains[$x] . "/"; // domain url to evaluate
+        }
         $headers = get_headers($url, 1); // returns an associated array with index keys of the domain server headers
 
         // look for the value of the index key 'Location' or 'location' in the headers request
@@ -59,7 +63,7 @@ function domainsEval($domains)
             echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['dead'] . "\n";
         } elseif (strpos($headers[0], '403')) {
             $ssl_status = $GLOBALS['blocked'] . $GLOBALS['ssl'];
-            echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['blocked'] . $GLOBALS['ssl'] . "\n";
+            echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['blocked'] . "\n";
         } elseif (is_array($url_eval)) {
             $ssl_status = urlRedirect($url, $url_eval);
         } elseif (strpos($url_eval, 'https') !== false) {
@@ -78,7 +82,7 @@ function domainsEval($domains)
             echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['non_ssl'] . "\n";
         } else {
             $ssl_status = $GLOBALS['down'] . $GLOBALS['non_ssl'];
-            echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['down'] . $GLOBALS['non_ssl'] . "\n";
+            echo str_pad($url, 52, " .") . $GLOBALS['separator'] . $GLOBALS['down'] . "\n";
         }
     }
     return $ssl_status;
